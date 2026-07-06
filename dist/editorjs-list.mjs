@@ -1879,7 +1879,7 @@ class G {
    */
   constructor({ data: t, config: n, api: r, readOnly: i, block: a }) {
     var s;
-    this.api = r, this.readOnly = i, this.config = n, this.block = a, this.defaultListStyle = ((s = this.config) == null ? void 0 : s.defaultStyle) || "unordered", this.defaultCounterTypes = this.config.counterTypes || Array.from(P.values());
+    this.api = r, this.readOnly = i, this.config = n, this.block = a, this.defaultListStyle = ((s = this.config) == null ? void 0 : s.defaultStyle) || "unordered", this.defaultCounterTypes = this.config.counterTypes || Array.from(P.values()), this.enabledStyles = this.config.styles || ["unordered", "ordered", "checklist"];
     const l = {
       style: this.defaultListStyle,
       meta: {},
@@ -1921,81 +1921,90 @@ class G {
    * @returns array of tune configs
    */
   renderSettings() {
-    const t = [
+    const n = [
       {
-        label: this.api.i18n.t("Unordered"),
-        icon: $e,
-        closeOnActivate: !0,
-        isActive: this.listStyle == "unordered",
-        onActivate: () => {
-          this.listStyle = "unordered";
+        style: "unordered",
+        tune: {
+          label: this.api.i18n.t("Unordered"),
+          icon: $e,
+          closeOnActivate: !0,
+          isActive: this.listStyle == "unordered",
+          onActivate: () => {
+            this.listStyle = "unordered";
+          }
         }
       },
       {
-        label: this.api.i18n.t("Ordered"),
-        icon: Be,
-        closeOnActivate: !0,
-        isActive: this.listStyle == "ordered",
-        onActivate: () => {
-          this.listStyle = "ordered";
+        style: "ordered",
+        tune: {
+          label: this.api.i18n.t("Ordered"),
+          icon: Be,
+          closeOnActivate: !0,
+          isActive: this.listStyle == "ordered",
+          onActivate: () => {
+            this.listStyle = "ordered";
+          }
         }
       },
       {
-        label: this.api.i18n.t("Checklist"),
-        icon: Ae,
-        closeOnActivate: !0,
-        isActive: this.listStyle == "checklist",
-        onActivate: () => {
-          this.listStyle = "checklist";
+        style: "checklist",
+        tune: {
+          label: this.api.i18n.t("Checklist"),
+          icon: Ae,
+          closeOnActivate: !0,
+          isActive: this.listStyle == "checklist",
+          onActivate: () => {
+            this.listStyle = "checklist";
+          }
         }
       }
-    ];
+    ].filter(({ style: r }) => this.enabledStyles.includes(r)).map(({ tune: r }) => r);
     if (this.listStyle === "ordered") {
-      const n = or(
-        (a) => this.changeStartWith(Number(a)),
+      const r = or(
+        (l) => this.changeStartWith(Number(l)),
         {
           value: String(this.data.meta.start ?? 1),
           placeholder: "",
           attributes: {
             required: "true"
           },
-          sanitize: (a) => ur(a)
+          sanitize: (l) => ur(l)
         }
-      ), r = [
+      ), i = [
         {
           label: this.api.i18n.t("Start with"),
           icon: It,
           children: {
             items: [
               {
-                element: n,
+                element: r,
                 // @ts-expect-error ts(2820) can not use PopoverItem enum from editor.js types
                 type: "html"
               }
             ]
           }
         }
-      ], i = {
+      ], a = {
         label: this.api.i18n.t("Counter type"),
         icon: He.get(this.data.meta.counterType),
         children: {
           items: []
         }
       };
-      P.forEach((a, l) => {
-        const s = P.get(l);
-        this.defaultCounterTypes.includes(s) && i.children.items.push({
-          title: this.api.i18n.t(l),
-          icon: He.get(s),
-          isActive: this.data.meta.counterType === P.get(l),
+      P.forEach((l, s) => {
+        const o = P.get(s);
+        this.defaultCounterTypes.includes(o) && a.children.items.push({
+          title: this.api.i18n.t(s),
+          icon: He.get(o),
+          isActive: this.data.meta.counterType === P.get(s),
           closeOnActivate: !0,
           onActivate: () => {
-            this.changeCounters(P.get(l));
+            this.changeCounters(P.get(s));
           }
         });
-      }), i.children.items.length > 1 && r.push(i), t.push({ type: "separator" }, ...r);
+      }), a.children.items.length > 1 && i.push(a), n.push({ type: "separator" }, ...i);
     }
-    return t;
+    return n;
   }
   /**
    * On paste callback that is fired from Editor.

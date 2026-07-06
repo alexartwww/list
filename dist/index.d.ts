@@ -73,6 +73,10 @@ export default class EditorjsList {
      */
     private defaultCounterTypes;
     /**
+     * List styles (unordered / ordered / checklist) allowed to be switched to from the block tune
+     */
+    private enabledStyles;
+    /**
      * Tool's data
      */
     private data;

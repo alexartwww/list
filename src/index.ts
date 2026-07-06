@@ -158,6 +158,11 @@ export default class EditorjsList {
   private defaultCounterTypes: OlCounterType[];
 
   /**
+   * List styles (unordered / ordered / checklist) allowed to be switched to from the block tune
+   */
+  private enabledStyles: ListDataStyle[];
+
+  /**
    * Tool's data
    */
   private data: ListData;
@@ -200,6 +205,11 @@ export default class EditorjsList {
      * Set the default counter types for the ordered list
      */
     this.defaultCounterTypes = (this.config as ListConfig).counterTypes || Array.from(OlCounterTypesMap.values()) as OlCounterType[];
+
+    /**
+     * Set the list styles allowed to be switched to from the block tune
+     */
+    this.enabledStyles = (this.config as ListConfig).styles || ['unordered', 'ordered', 'checklist'];
 
     const initialData = {
       style: this.defaultListStyle,
@@ -263,35 +273,48 @@ export default class EditorjsList {
    * @returns array of tune configs
    */
   public renderSettings(): MenuConfigItem[] {
-    const defaultTunes: MenuConfigItem[] = [
+    const styleTunes: { style: ListDataStyle; tune: MenuConfigItem }[] = [
       {
-        label: this.api.i18n.t('Unordered'),
-        icon: IconListBulleted,
-        closeOnActivate: true,
-        isActive: this.listStyle == 'unordered',
-        onActivate: () => {
-          this.listStyle = 'unordered';
+        style: 'unordered',
+        tune: {
+          label: this.api.i18n.t('Unordered'),
+          icon: IconListBulleted,
+          closeOnActivate: true,
+          isActive: this.listStyle == 'unordered',
+          onActivate: () => {
+            this.listStyle = 'unordered';
+          },
         },
       },
       {
-        label: this.api.i18n.t('Ordered'),
-        icon: IconListNumbered,
-        closeOnActivate: true,
-        isActive: this.listStyle == 'ordered',
-        onActivate: () => {
-          this.listStyle = 'ordered';
+        style: 'ordered',
+        tune: {
+          label: this.api.i18n.t('Ordered'),
+          icon: IconListNumbered,
+          closeOnActivate: true,
+          isActive: this.listStyle == 'ordered',
+          onActivate: () => {
+            this.listStyle = 'ordered';
+          },
         },
       },
       {
-        label: this.api.i18n.t('Checklist'),
-        icon: IconChecklist,
-        closeOnActivate: true,
-        isActive: this.listStyle == 'checklist',
-        onActivate: () => {
-          this.listStyle = 'checklist';
+        style: 'checklist',
+        tune: {
+          label: this.api.i18n.t('Checklist'),
+          icon: IconChecklist,
+          closeOnActivate: true,
+          isActive: this.listStyle == 'checklist',
+          onActivate: () => {
+            this.listStyle = 'checklist';
+          },
         },
       },
     ];
+
+    const defaultTunes: MenuConfigItem[] = styleTunes
+      .filter(({ style }) => this.enabledStyles.includes(style))
+      .map(({ tune }) => tune);
 
     if (this.listStyle === 'ordered') {
       const startWithElement = renderToolboxInput(
