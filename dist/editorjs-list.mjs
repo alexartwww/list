@@ -1442,7 +1442,10 @@ class z {
    * @param counterType - new value of the counterType value
    */
   changeCounters(t) {
-    this.listWrapper.style.setProperty("--list-counter-type", t), this.data.meta.counterType = t;
+    this.listWrapper.style.setProperty("--list-counter-type", t), this.listWrapper.style.setProperty(
+      "list-style-type",
+      t === "numeric" ? "decimal" : t
+    ), this.data.meta.counterType = t;
   }
   /**
    * Handles Enter keypress
