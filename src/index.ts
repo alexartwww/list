@@ -1,8 +1,7 @@
 import type { API, BlockAPI, PasteConfig, ToolboxConfig } from '@editorjs/editorjs';
 import type {
   BlockToolConstructorOptions,
-  MenuConfigItem,
-  ToolConfig
+  MenuConfigItem
 } from '@editorjs/editorjs/types/tools';
 import { IconListBulleted, IconListNumbered, IconChecklist } from '@codexteam/icons';
 import { IconStartWith } from './styles/icons/index.js';
@@ -88,7 +87,9 @@ export default class EditorjsList {
   }
 
   /**
-   * Convert from text to list with import and export list to text
+   * Export list to text. Import (converting some other block into a list) is intentionally
+   * not supported: it used to dump the whole source content into a single list item, which
+   * is not a meaningful conversion, so the "Convert to List" option is hidden instead.
    */
   public static get conversionConfig(): {
     /**
@@ -97,30 +98,10 @@ export default class EditorjsList {
      * @returns - contents string formed from list data
      */
     export: (data: ListData) => string;
-
-    /**
-     * Method that is responsible for conversion from string to data
-     * @param content - contents string
-     * @returns - list data formed from contents string
-     */
-    import: (content: string, config: ToolConfig<ListConfig>) => ListData;
   } {
     return {
       export: (data) => {
         return EditorjsList.joinRecursive(data);
-      },
-      import: (content, config) => {
-        return {
-          meta: {},
-          items: [
-            {
-              content,
-              meta: {},
-              items: [],
-            },
-          ],
-          style: config?.defaultStyle !== undefined ? config.defaultStyle : 'unordered',
-        };
       },
     };
   }

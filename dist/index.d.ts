@@ -1,5 +1,5 @@
 import { PasteConfig, ToolboxConfig } from '@editorjs/editorjs';
-import { BlockToolConstructorOptions, MenuConfigItem, ToolConfig } from '@editorjs/editorjs/types/tools';
+import { BlockToolConstructorOptions, MenuConfigItem } from '@editorjs/editorjs/types/tools';
 import { ListConfig, ListData, OldListData } from './types/ListParams';
 import { PasteEvent } from './types';
 
@@ -31,7 +31,9 @@ export default class EditorjsList {
      */
     static get pasteConfig(): PasteConfig;
     /**
-     * Convert from text to list with import and export list to text
+     * Export list to text. Import (converting some other block into a list) is intentionally
+     * not supported: it used to dump the whole source content into a single list item, which
+     * is not a meaningful conversion, so the "Convert to List" option is hidden instead.
      */
     static get conversionConfig(): {
         /**
@@ -40,12 +42,6 @@ export default class EditorjsList {
          * @returns - contents string formed from list data
          */
         export: (data: ListData) => string;
-        /**
-         * Method that is responsible for conversion from string to data
-         * @param content - contents string
-         * @returns - list data formed from contents string
-         */
-        import: (content: string, config: ToolConfig<ListConfig>) => ListData;
     };
     /**
      * Get list style name

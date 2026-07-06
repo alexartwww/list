@@ -1844,22 +1844,13 @@ class G {
     };
   }
   /**
-   * Convert from text to list with import and export list to text
+   * Export list to text. Import (converting some other block into a list) is intentionally
+   * not supported: it used to dump the whole source content into a single list item, which
+   * is not a meaningful conversion, so the "Convert to List" option is hidden instead.
    */
   static get conversionConfig() {
     return {
-      export: (t) => G.joinRecursive(t),
-      import: (t, n) => ({
-        meta: {},
-        items: [
-          {
-            content: t,
-            meta: {},
-            items: []
-          }
-        ],
-        style: (n == null ? void 0 : n.defaultStyle) !== void 0 ? n.defaultStyle : "unordered"
-      })
+      export: (t) => G.joinRecursive(t)
     };
   }
   /**
