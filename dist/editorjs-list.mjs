@@ -1844,13 +1844,27 @@ class G {
     };
   }
   /**
-   * Export list to text. Import (converting some other block into a list) is intentionally
-   * not supported: it used to dump the whole source content into a single list item, which
-   * is not a meaningful conversion, so the "Convert to List" option is hidden instead.
+   * Convert from text to list with import and export list to text.
+   *
+   * Items are joined/split by line break so that a multi-item list survives a round trip
+   * (e.g. converting List -> List between styles via the block "Convert to" menu, which,
+   * unlike the style tune, goes through export+import) instead of collapsing into one item.
    */
   static get conversionConfig() {
     return {
-      export: (t) => G.joinRecursive(t)
+      export: (t) => G.joinRecursive(t),
+      import: (t, n) => {
+        const r = t.split(/\r?\n/).map((i) => i.trim()).filter((i) => i.length > 0).map((i) => ({
+          content: i,
+          meta: {},
+          items: []
+        }));
+        return {
+          meta: {},
+          items: r.length > 0 ? r : [{ content: t, meta: {}, items: [] }],
+          style: (n == null ? void 0 : n.defaultStyle) !== void 0 ? n.defaultStyle : "unordered"
+        };
+      }
     };
   }
   /**
@@ -1888,12 +1902,19 @@ class G {
     this.data = Object.keys(t).length ? pr(t) : l, this.listStyle === "ordered" && this.data.meta.counterType === void 0 && (this.data.meta.counterType = "numeric"), this.changeTabulatorByStyle();
   }
   /**
-   * Convert from list to text for conversionConfig
+   * Convert from list to text for conversionConfig.
+   * Items (and nested sub-items) are separated by line breaks, one per line,
+   * so that `import` can split them back into separate list items.
    * @param data - current data of the list
    * @returns - string of the recursively merged contents of the items of the list
    */
   static joinRecursive(t) {
-    return t.items.map((n) => `${n.content} ${G.joinRecursive(n)}`).join("");
+    return t.items.map((n) => {
+      const r = G.joinRecursive(n);
+      return r.length > 0 ? `${n.content}
+${r}` : n.content;
+    }).join(`
+`);
   }
   /**
    * Function that is responsible for content rendering

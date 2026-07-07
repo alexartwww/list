@@ -1,7 +1,8 @@
 import type { API, BlockAPI, PasteConfig, ToolboxConfig } from '@editorjs/editorjs';
 import type {
   BlockToolConstructorOptions,
-  MenuConfigItem
+  MenuConfigItem,
+  ToolConfig
 } from '@editorjs/editorjs/types/tools';
 import { IconListBulleted, IconListNumbered, IconChecklist } from '@codexteam/icons';
 import { IconStartWith } from './styles/icons/index.js';
@@ -87,9 +88,11 @@ export default class EditorjsList {
   }
 
   /**
-   * Export list to text. Import (converting some other block into a list) is intentionally
-   * not supported: it used to dump the whole source content into a single list item, which
-   * is not a meaningful conversion, so the "Convert to List" option is hidden instead.
+   * Convert from text to list with import and export list to text.
+   *
+   * Items are joined/split by line break so that a multi-item list survives a round trip
+   * (e.g. converting List -> List between styles via the block "Convert to" menu, which,
+   * unlike the style tune, goes through export+import) instead of collapsing into one item.
    */
   public static get conversionConfig(): {
     /**
@@ -98,10 +101,34 @@ export default class EditorjsList {
      * @returns - contents string formed from list data
      */
     export: (data: ListData) => string;
+
+    /**
+     * Method that is responsible for conversion from string to data
+     * @param content - contents string
+     * @returns - list data formed from contents string
+     */
+    import: (content: string, config: ToolConfig<ListConfig>) => ListData;
   } {
     return {
       export: (data) => {
         return EditorjsList.joinRecursive(data);
+      },
+      import: (content, config) => {
+        const items: ListItem[] = content
+          .split(/\r?\n/)
+          .map(line => line.trim())
+          .filter(line => line.length > 0)
+          .map(line => ({
+            content: line,
+            meta: {},
+            items: [],
+          }));
+
+        return {
+          meta: {},
+          items: items.length > 0 ? items : [{ content, meta: {}, items: [] }],
+          style: config?.defaultStyle !== undefined ? config.defaultStyle : 'unordered',
+        };
       },
     };
   }
@@ -230,14 +257,20 @@ export default class EditorjsList {
   }
 
   /**
-   * Convert from list to text for conversionConfig
+   * Convert from list to text for conversionConfig.
+   * Items (and nested sub-items) are separated by line breaks, one per line,
+   * so that `import` can split them back into separate list items.
    * @param data - current data of the list
    * @returns - string of the recursively merged contents of the items of the list
    */
   private static joinRecursive(data: ListData | ListItem): string {
     return data.items
-      .map(item => `${item.content} ${EditorjsList.joinRecursive(item)}`)
-      .join('');
+      .map(item => {
+        const nested = EditorjsList.joinRecursive(item);
+
+        return nested.length > 0 ? `${item.content}\n${nested}` : item.content;
+      })
+      .join('\n');
   }
 
   /**
